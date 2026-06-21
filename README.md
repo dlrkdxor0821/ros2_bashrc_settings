@@ -74,6 +74,8 @@ $
 | `gco` | `git checkout` | git checkout 단축 |
 | `gs` | `git status` | git status 단축 |
 | `gd` | `git diff` | git diff 단축 |
+| `ga` | `git add .` | 전체 staged 추가 |
+| `gcm` | `git commit -m "$*"` | 따옴표 없이 `gcm 메시지...` 로 커밋 (함수) |
 | `ccbs` | `colcon build --symlink-install` | colcon 빌드 (symlink install) |
 | `si` | `source ./install/local_setup.bash` | 현재 워크스페이스 overlay source |
 

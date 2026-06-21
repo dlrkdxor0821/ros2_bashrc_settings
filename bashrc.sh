@@ -39,6 +39,9 @@ alias sb="source ~/.bashrc"
 alias gco='git checkout'
 alias gs='git status'
 alias gd='git diff'
+alias ga='git add .'
+# gcm 메시지...  -> git commit -m "메시지..." (따옴표 없이 여러 단어 가능)
+gcm() { git commit -m "$*"; }
 
 # =============================================================================
 # ROS2 설정
