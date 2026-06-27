@@ -11,7 +11,7 @@ ROS2 개발용 bashrc 설정 모음. Ubuntu 기본 `~/.bashrc`(`/etc/skel/.bashr
 
 ## 기본값(`/etc/skel/.bashrc`) 대비 변경점
 
-### 1. git 브랜치를 프롬프트에 표시
+### 1. git 브랜치 + 작업 상태를 프롬프트에 표시
 `parse_git_branch` 함수를 추가하고 `PS1`을 재설정하여, git 저장소 안에서는
 프롬프트에 ` (브랜치명)`이 빨간색으로 표시된다.
 
@@ -21,12 +21,41 @@ parse_git_branch() {
 }
 ```
 
+이어서 `parse_git_status` 함수가 브랜치 이름 **바로 옆에 현재 작업 상태를 주황색**으로
+표시한다. 해당되는 상태를 모두 나란히 표시한다 (예: `(main) staged unstaged`).
+
+| 표시 | 의미 | 판정 |
+|------|------|------|
+| `staged` | `add` 했고 `commit` 안 함 | index에 변경이 있음 |
+| `unstaged` | 수정했거나 새 파일인데 `add` 안 함 | 작업트리 변경 또는 untracked 파일 |
+| `ahead` | `commit` 했고 `push` 안 함 | upstream보다 앞선 커밋이 있음 (upstream이 설정돼 있을 때만) |
+| `clean` | 위 셋 다 해당 없음 | 변경 없음 + 푸시까지 완료 |
+
+> `ahead`는 upstream(`origin/main` 등)이 설정돼 있어야 잡힌다. 한 번도 push 안 한
+> 새 브랜치(upstream 없음)는 commit이 있어도 `clean`으로 보일 수 있다
+> (`git push -u`를 한 번 하면 그 뒤로는 정상 동작).
+
+```bash
+parse_git_status() {
+    git rev-parse --is-inside-work-tree >/dev/null 2>&1 || return
+    local status labels=""
+    status=$(git status --porcelain 2>/dev/null)
+    echo "$status" | grep -q  '^[MADRC]'     && labels+=" staged"
+    echo "$status" | grep -qE '^.[MD]|^\?\?'  && labels+=" unstaged"
+    local ahead
+    ahead=$(git rev-list --count @{upstream}..HEAD 2>/dev/null)
+    [ -n "$ahead" ] && [ "$ahead" -gt 0 ]     && labels+=" ahead"
+    [ -z "$labels" ] && labels=" clean"
+    printf '%s' "$labels"
+}
+```
+
 ### 2. 명령 입력을 다음 줄로
 `PS1` 끝의 `\$ ` 앞에 `\n`을 넣어, 프롬프트 정보는 윗줄에 두고 명령은 아랫줄에
 입력하도록 했다.
 
 ```
-asd@asd-pc:~/personal_repo/ros2_bashrc_settings (main)
+asd@asd-pc:~/personal_repo/ros2_bashrc_settings (main) clean
 $ 
 ```
 
@@ -61,7 +90,7 @@ jazzy() {
 
 `jazzy` 실행 후 프롬프트:
 ```
-(ID:119) asd@asd-pc:~/ros2_ws (main)
+(ID:119) asd@asd-pc:~/ros2_ws (main) clean
 $ 
 ```
 
